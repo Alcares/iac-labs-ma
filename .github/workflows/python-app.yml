@@ -1,3 +1,6 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
 name: Python application
 
 on:
@@ -11,64 +14,143 @@ permissions:
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
-    defaults:
-      run:
+
+    defaults: 
+      run: 
         working-directory: ./example-app
+
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python 3.12
+    - name: Set up Python 3.11
       uses: actions/setup-python@v3
       with:
-        python-version: "3.12"
-    - run: |
-        python -m pip install --upgrade pip
-        pip install poetry
+        python-version: "3.11"
+
+    - name: Install Poetry Action
+      uses: snok/install-poetry@v1.3.4
+          
+    - name: Install dependencies
+      run: |
         poetry install --no-root
-    - name: Cache Poetry dependencies
+        
+    - name: Cache build venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: /home/runner/work/iac-labs-ma/iac-labs-ma/example-app/.venv
+        key: ${{ runner.os }}-venv
+        
+
+  lint:
+    needs: build
+    runs-on: ubuntu-latest
+
+    defaults: 
+      run: 
+        working-directory: ./example-app
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.11"
+
+    - name: Install Poetry Action
+      uses: snok/install-poetry@v1.3.4
+        
+    - name: Restore cached deps
       id: cached-poetry-dependencies
       uses: actions/cache@v3
       with:
         path: /home/runner/work/iac-labs-ma/iac-labs-ma/example-app/.venv
         key: ${{ runner.os }}-venv
 
-  test:
+    - name: Run lint
+      run: poetry run task lint
+
+  formatter:
     needs: build
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./example-app
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python 3.12
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.12"
-    - name: Restore Poetry dependencies
-      uses: actions/cache@v3
-      with:
-        path: /home/runner/work/iac-labs-ma/iac-labs-ma/example-app/.venv
-        key: ${{ runner.os }}-venv
-    - run: poetry run task test
-    - run: poetry run task lint
-    - run: poetry run task formatter
-    - run: poetry run task security
 
-  unittest:
-    needs: test
-    runs-on: ubuntu-latest
-    defaults:
-      run:
+    defaults: 
+      run: 
         working-directory: ./example-app
+
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python 3.12
+    - name: Set up Python 3.11
       uses: actions/setup-python@v3
       with:
-        python-version: "3.12"
-    - name: Restore Poetry dependencies
+        python-version: "3.11"
+
+    - name: Install Poetry Action
+      uses: snok/install-poetry@v1.3.4
+        
+    - name: Restore cached deps
+      id: cached-poetry-dependencies
       uses: actions/cache@v3
       with:
         path: /home/runner/work/iac-labs-ma/iac-labs-ma/example-app/.venv
         key: ${{ runner.os }}-venv
-    - run: echo "Unit testing"
+
+    - name: Run formatter
+      run: poetry run task formatter
+
+  security:
+    needs: build
+    runs-on: ubuntu-latest
+
+    defaults: 
+      run: 
+        working-directory: ./example-app
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.11"
+
+    - name: Install Poetry Action
+      uses: snok/install-poetry@v1.3.4
+        
+    - name: Restore cached deps
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: /home/runner/work/iac-labs-ma/iac-labs-ma/example-app/.venv
+        key: ${{ runner.os }}-venv
+
+    - name: Run security
+      run: poetry run task security
+    
+  unittests:
+    needs: [lint, formatter, security]
+    runs-on: ubuntu-latest
+    
+    defaults: 
+      run: 
+        working-directory: ./example-app
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.11"
+
+    - name: Install Poetry Action
+      uses: snok/install-poetry@v1.3.4
+        
+    - name: Restore cached deps
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: /home/runner/work/iac-labs-ma/iac-labs-ma/example-app/.venv
+        key: ${{ runner.os }}-venv
+
+    - name: Run unit tests
+      run: poetry run task test
