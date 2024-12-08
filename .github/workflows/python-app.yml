@@ -29,7 +29,7 @@ jobs:
       id: cached-poetry-dependencies
       uses: actions/cache@v3
       with:
-        path: .venv
+        path: /home/runner/work/iac-labs-ma/iac-labs-ma/example-app/.venv
         key: ${{ runner.os }}-venv
 
   test:
@@ -47,7 +47,7 @@ jobs:
     - name: Restore Poetry dependencies
       uses: actions/cache@v3
       with:
-        path: .venv
+        path: /home/runner/work/iac-labs-ma/iac-labs-ma/example-app/.venv
         key: ${{ runner.os }}-venv
     - run: poetry run task test
     - run: poetry run task lint
@@ -69,6 +69,6 @@ jobs:
     - name: Restore Poetry dependencies
       uses: actions/cache@v3
       with:
-        path: .venv
+        path: /home/runner/work/iac-labs-ma/iac-labs-ma/example-app/.venv
         key: ${{ runner.os }}-venv
     - run: echo "Unit testing"
