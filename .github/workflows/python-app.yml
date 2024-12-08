@@ -23,6 +23,8 @@ jobs:
     defaults: 
       run: 
         working-directory: ./example-app
+        shell: bash
+      
 
     steps:
     - uses: actions/checkout@v4
